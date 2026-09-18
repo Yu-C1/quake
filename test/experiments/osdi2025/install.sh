@@ -209,7 +209,7 @@ done
 git submodule update --init --recursive
 
 echo ">>> Building and installing QUAKE Python package..."
-conda run -n "${CONDA_ENV_NAME}" pip install . --no-use-pep517
+conda run -n "${CONDA_ENV_NAME}" pip install . --no-build-isolation
 cd /
 
 # -----------------------------
