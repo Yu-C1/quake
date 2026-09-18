@@ -145,7 +145,8 @@ rm /tmp/conda.yaml # Clean up
 conda clean -afy
 
 echo ">>> Installing specific PyTorch (CPU) and other Python packages into '${CONDA_ENV_NAME}'..."
-conda run -n "${CONDA_ENV_NAME}" pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+# Pinned: torch >=2.8 headers require C++20, but CMakeLists.txt builds with C++17.
+conda run -n "${CONDA_ENV_NAME}" pip install torch==2.5.1 torchvision==0.20.1 torchaudio==2.5.1 --index-url https://download.pytorch.org/whl/cpu
 
 conda run -n "${CONDA_ENV_NAME}" pip install \
     lightgbm \
@@ -210,6 +211,10 @@ git submodule update --init --recursive
 
 echo ">>> Building and installing QUAKE Python package..."
 conda run -n "${CONDA_ENV_NAME}" pip install . --no-build-isolation
+
+# Quake's unpinned faiss-cpu dep resolves to a build requiring numpy>=2, which clobbers
+# the numpy 1.25.0 that diskannpy's compiled extension needs. Restore both.
+conda run -n "${CONDA_ENV_NAME}" pip install faiss-cpu==1.9.0 numpy==1.25.0
 cd /
 
 # -----------------------------
