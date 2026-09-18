@@ -152,6 +152,7 @@ conda run -n "${CONDA_ENV_NAME}" pip install \
     lightgbm \
     scikit-learn \
     tabulate \
+    matplotlib==3.8.4 \
     scann==1.4.0
 
 # Last numpy 1.x release: diskannpy needs the 1.x ABI, pandas needs >=1.26.
