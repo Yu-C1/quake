@@ -151,10 +151,11 @@ conda run -n "${CONDA_ENV_NAME}" pip install torch==2.5.1 torchvision==0.20.1 to
 conda run -n "${CONDA_ENV_NAME}" pip install \
     lightgbm \
     scikit-learn \
+    tabulate \
     scann==1.4.0
 
-# Force numpy 1.25.0 for diskannpy compatibility
-conda run -n "${CONDA_ENV_NAME}" pip install numpy==1.25.0 --force-reinstall
+# Last numpy 1.x release: diskannpy needs the 1.x ABI, pandas needs >=1.26.
+conda run -n "${CONDA_ENV_NAME}" pip install numpy==1.26.4 --force-reinstall
 conda run -n "${CONDA_ENV_NAME}" pip install diskannpy==0.7.0
 
 echo ">>> Verifying '${CONDA_ENV_NAME}'..."
@@ -214,7 +215,7 @@ conda run -n "${CONDA_ENV_NAME}" pip install . --no-build-isolation
 
 # Quake's unpinned faiss-cpu dep resolves to a build requiring numpy>=2, which clobbers
 # the numpy 1.25.0 that diskannpy's compiled extension needs. Restore both.
-conda run -n "${CONDA_ENV_NAME}" pip install faiss-cpu==1.9.0 numpy==1.25.0
+conda run -n "${CONDA_ENV_NAME}" pip install faiss-cpu==1.9.0 numpy==1.26.4
 cd /
 
 # -----------------------------
