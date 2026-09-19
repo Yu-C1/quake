@@ -1,0 +1,77 @@
+# ─── top-level controls ───────────────────────────────────
+# Scaled-down analogue of sift10m.yaml, using SIFT1M (already available
+# locally, unlike SIFT10M which has no working auto-download in this repo).
+# Mirrors the paper's Table 6 L0:L1 ratio (~40000:500 = 80:1) at SIFT1M scale.
+overwrite:
+  index: false # Force rebuild of the base child index (L0)
+  results: true # Force rerun of searches for all experiment setups
+
+# ─── dataset ───────────────────────────────────────────────
+dataset:
+  name: sift1m
+  metric: l2
+  path: data
+  nq: 100    # Number of queries to use for benchmarking
+
+# ─── base child index (L0 - innermost data layer) ──────────
+# NOTE: this goes through common_utils.prepare_quake_index(), which builds a
+# raw IndexBuildParams() and only copies keys that already exist as attributes
+# on it (via hasattr). IndexBuildParams has `nlist`, not `nc` -- so this key
+# must be `nlist` here (unlike additional_levels[].build_params below, which
+# is read via an explicit `nc` lookup in build_hierarchical_index()).
+child_index_config:
+  type: Quake
+  build_params:
+    nlist: 4000     # ~250 vectors/partition, matching the paper's SIFT10M density
+    metric: l2
+    num_workers: 8
+
+# ─── global innermost search sweep (applies to L0 search phase) ───
+global_innermost_search_sweep:
+  nprobes: [1, 2, 4, 8, 16, 32, 64, 128, 256, 512]
+  k: 1
+  batch_size: 1
+
+# ─── experiment setups (different hierarchical configurations) ─────
+experiment_setups:
+  - name: "ChildOnly_L0"
+    # No additional_levels: single-level baseline for comparison.
+
+  - name: "L0_plus_L1_Parent100_PScan10"
+    additional_levels:
+      - type: Quake # L1 (parent of L0), ~80:1 ratio matching paper's 40000:500
+        build_params:
+          nc: 100
+          num_workers: 4
+        search_params:
+          nprobe: 10
+          num_workers: 4
+          use_numa: false
+
+  - name: "L0_plus_L1_Parent50_PScan5"
+    additional_levels:
+      - type: Quake # L1
+        build_params: {nc: 50, num_workers: 8}
+        search_params: {nprobe: 5, num_workers: 8, use_numa: false}
+
+  - name: "L0_L1_Parent100_L2_Parent10_PScan5"
+    additional_levels:
+      - type: Quake # L1 (parent of L0)
+        build_params: {nc: 100, num_workers: 4}
+        search_params: {nprobe: 10, num_workers: 4}
+      - type: Quake # L2 (parent of L1)
+        build_params: {nc: 10, num_workers: 2}
+        search_params: {nprobe: 5, num_workers: 2}
+
+# ─── common experiment parameters ──────────────────────────
+experiment_params:
+  trials: 3
+  warmup: 1
+
+# ─── plotting (optional) ──────────────────────────────────
+plot:
+  styles:
+    ChildOnly_L0: {color: "#1f77b4", marker: "o", linestyle: "-"}
+    L0_plus_L1_Parent100_PScan10: {color: "#ff7f0e", marker: "s", linestyle: "--"}
+    L0_plus_L1_Parent50_PScan5: {color: "#2ca02c", marker: "D", linestyle: "-."}
+    L0_L1_Parent100_L2_Parent10_PScan5: {color: "#d62728", marker: "^", linestyle: ":"}
