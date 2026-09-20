@@ -103,6 +103,10 @@ else
     exit 1
 fi
 
+# Recent conda refuses to create environments until these are accepted.
+conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main || true
+conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r || true
+
 # -----------------------------
 # Create Conda Environment 'quake-env' and Install Dependencies
 # -----------------------------
